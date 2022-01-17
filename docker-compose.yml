@@ -1,0 +1,61 @@
+version: '3'
+services:
+  app:
+    build:
+      context: .
+    entrypoint: bundle exec puma -C config/puma.rb
+    volumes:
+      - .:/tuna-book
+      - public-data:/tuna-book/public
+      - tmp-data:/tuna-book/tmp
+      - log-data:/tuna-book/log
+    networks:
+      - tuna-book-network
+    depends_on:
+      - db
+
+  db:
+    image: mysql:5.7
+    environment:
+      MYSQL_ROOT_PASSWORD: password
+      MYSQL_USER: user
+      MYSQL_PASSWORD: password
+      MYSQL_DATABASE: tuna-book-development
+    volumes:
+      - db-data:/var/lib/mysql
+    networks:
+      - tuna-book-network
+
+  redis:
+    image: redis:latest
+    ports:
+      - 6379:6379
+    volumes:
+      - ./log:/var/log/redis
+      - ./data/redis:/data
+    command: redis-server --appendonly yes
+    networks:
+      - tuna-book-network
+
+  web:
+    build:
+      context: ./nginx_docker
+    volumes:
+      - public-data:/tuna-book/public
+      - tmp-data:/tuna-book/tmp
+    ports:
+      - 80:80
+    depends_on:
+      - app
+      - redis
+    networks:
+      - tuna-book-network
+volumes:
+  public-data:
+  tmp-data:
+  log-data:
+  db-data:
+
+networks:
+  tuna-book-network:
+    external: true
