@@ -9,8 +9,6 @@ services:
       - public-data:/tuna-book/public
       - tmp-data:/tuna-book/tmp
       - log-data:/tuna-book/log
-    networks:
-      - tuna-book-network
     depends_on:
       - db
 
@@ -23,8 +21,6 @@ services:
       MYSQL_DATABASE: tuna-book-development
     volumes:
       - db-data:/var/lib/mysql
-    networks:
-      - tuna-book-network
 
   redis:
     image: redis:latest
@@ -34,8 +30,6 @@ services:
       - ./log:/var/log/redis
       - ./data/redis:/data
     command: redis-server --appendonly yes
-    networks:
-      - tuna-book-network
 
   web:
     build:
@@ -48,14 +42,9 @@ services:
     depends_on:
       - app
       - redis
-    networks:
-      - tuna-book-network
+
 volumes:
   public-data:
   tmp-data:
   log-data:
   db-data:
-
-networks:
-  tuna-book-network:
-    external: true
